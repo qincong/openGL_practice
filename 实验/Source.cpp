@@ -1,78 +1,90 @@
 #include "glut.h"
 #include "stdio.h"
-GLfloat x1 = 0.0f;
-GLfloat y1 = 0.0f;
-GLfloat rsize = 25;
-GLfloat xstep = 1.0f;
-GLfloat ystep = 1.0f;
+#include "math.h"
 
-GLfloat windowWidth;
-GLfloat windowHeight;
+#define GL_PI 3.1415f
+static GLfloat xRot = 0.0f;
+static GLfloat yRot = 0.0f;
 
 void RenderScene(void) {
+	GLfloat x, y, z, angle;
 	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glRectf(x1, y1, x1 + rsize, y1 - rsize);
+
+	glPushMatrix();
+	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
+	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
+
+	glBegin(GL_POINTS);
+		z = -50.0f;
+		for (angle = 0.0f; angle <= (2.0f*GL_PI)*3.0f; angle += 0.1f) {
+			x = 50.0f*sin(angle);
+			y = 50.0f*cos(angle);
+			glVertex3f(x, y, z);
+			z += 0.5f;
+		}
+	glEnd();
+	glPopMatrix();
 	glutSwapBuffers();
 }
 
-void TimerFunction(int value) {
-	if (x1 > windowWidth - rsize || x1 < -windowWidth) {
-		xstep = -xstep;
-	}
-	if (y1 > windowHeight || y1 < -windowHeight + rsize) {
-		printf("yfan");
-		ystep = -ystep;
-	}
-	printf("x%f y%f   ", xstep,ystep);
-	x1 += xstep;
-	y1 += ystep;
-	if (x1 > (windowWidth - rsize + xstep))
-		x1 = windowWidth - rsize - 1;
-	else if (x1 < -(windowWidth + xstep))
-		x1 = -windowWidth - 1;
-	if (y1 > windowHeight + ystep)
-		y1 = windowHeight - 1;
-	else if (y1 < -(windowHeight + rsize + ystep))
-		y1 = -windowHeight + rsize + 1;
-	glutPostRedisplay();
-	glutTimerFunc(33, TimerFunction, 1);
-}
 void ChangeSize(GLsizei w, GLsizei h) {
-	GLfloat aspectRatio;
-	if (h == 0)
+	GLfloat nRange = 100.0f;
+	if (h == 0) {
 		h = 1;
+	}
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	aspectRatio = (GLfloat)w / (GLfloat)h;
-	windowWidth = 100;
-	windowHeight = 100;
-	if (w <= h) {
-		glOrtho(-100.0, 100.0, -100 / aspectRatio, 100.0 / aspectRatio, 1.0, -1.0);
-		windowHeight = 100 / aspectRatio;
-	}
-	else {
-		glOrtho(-100.0*aspectRatio, 100 * aspectRatio, -100.0, 100.0, 1.0, -1.0);
-		windowWidth = 100 * aspectRatio;
-	}
+	if (w <= h)
+		glOrtho(-nRange, nRange, -nRange*h / w, nRange*h / w, -nRange, nRange);
+	else
+		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange, nRange);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
 void SetupRC(void) {
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
+}
+
+void SpecialKeys(int key, int x, int y)
+{
+	if (key == GLUT_KEY_UP)
+		xRot -= 5.0f;
+
+	if (key == GLUT_KEY_DOWN)
+		xRot += 5.0f;
+
+	if (key == GLUT_KEY_LEFT)
+		yRot -= 5.0f;
+
+	if (key == GLUT_KEY_RIGHT)
+		yRot += 5.0f;
+
+	if (key > 356.0f)
+		xRot = 0.0f;
+
+	if (key < -1.0f)
+		xRot = 355.0f;
+
+	if (key > 356.0f)
+		yRot = 0.0f;
+
+	if (key < -1.0f)
+		yRot = 355.0f;
+
+	// Refresh the Window
+	glutPostRedisplay();
 }
 
 int main(int argc, char *argv[]) {
-	printf("hello");
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(800, 600);
 	glutCreateWindow("Bounce");
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
-	glutTimerFunc(33, TimerFunction, 1);
-
+	glutSpecialFunc(SpecialKeys);
 	SetupRC();
 	glutMainLoop();
 	return 0;
