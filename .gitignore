@@ -1,0 +1,7 @@
+/Debug
+/.vs
+/实验/Debug
+/实验/*vcxproj*
+/*.sln
+/*.db
+/*.opendb
