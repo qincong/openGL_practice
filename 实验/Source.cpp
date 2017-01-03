@@ -13,17 +13,17 @@ void RenderScene(void) {
 	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
 	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
 
-	glBegin(GL_LINES);
-		z = 0.0f;
-		for(angle = 0.0f; angle <= GL_PI; angle += (GL_PI / 20)) {
+	glBegin(GL_LINE_STRIP);
+		z = -50.0f;
+		for (angle = 0.0f; angle <= (2.0f*GL_PI)*3.0f; angle += 0.1f) {
 			x = 50.0f*sin(angle);
 			y = 50.0f*cos(angle);
 			glVertex3f(x, y, z);
-			x = 50.0f*sin(angle + GL_PI);
-			y = 50.0f*cos(angle + GL_PI);
-			glVertex3f(x, y, z);
+			z += 0.5f;
 		}
 	glEnd();
+
+
 	glPopMatrix();
 	glutSwapBuffers();
 }
