@@ -8,27 +8,22 @@ static GLfloat yRot = 0.0f;
 
 void RenderScene(void) {
 	GLfloat x, y, z, angle;
-	GLfloat sizes[2];
-	GLfloat step;
-	GLfloat curSize;
 	glClear(GL_COLOR_BUFFER_BIT);
 	glPushMatrix();
 	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
 	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
-	glGetFloatv(GL_POINT_SIZE_RANGE, sizes);
-	glGetFloatv(GL_POINT_SIZE_GRANULARITY, &step);
-	curSize = sizes[0];
-	z = -50.0f;
-	for (angle = 0.0f; angle <= (2.0f*GL_PI)*3.0f; angle += 0.1f) {
-		x = 50.0f*sin(angle);
-		y = 50.0f*cos(angle);
-		glPointSize(curSize);
-		glBegin(GL_POINTS);
+
+	glBegin(GL_LINES);
+		z = 0.0f;
+		for(angle = 0.0f; angle <= GL_PI; angle += (GL_PI / 20)) {
+			x = 50.0f*sin(angle);
+			y = 50.0f*cos(angle);
 			glVertex3f(x, y, z);
-		glEnd();
-		z += 0.5f;
-		curSize += step;
-	}
+			x = 50.0f*sin(angle + GL_PI);
+			y = 50.0f*cos(angle + GL_PI);
+			glVertex3f(x, y, z);
+		}
+	glEnd();
 	glPopMatrix();
 	glutSwapBuffers();
 }
