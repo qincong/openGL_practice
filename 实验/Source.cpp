@@ -7,21 +7,24 @@ static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
 
 void RenderScene(void) {
-	GLfloat x, y, z, angle;
+	
+	GLfloat y;
+	GLint factor = 3;
+	GLushort pattern = 0x5555;
 	glClear(GL_COLOR_BUFFER_BIT);
 	glPushMatrix();
 	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
 	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
 
-	glBegin(GL_LINE_STRIP);
-		z = -50.0f;
-		for (angle = 0.0f; angle <= (2.0f*GL_PI)*3.0f; angle += 0.1f) {
-			x = 50.0f*sin(angle);
-			y = 50.0f*cos(angle);
-			glVertex3f(x, y, z);
-			z += 0.5f;
-		}
-	glEnd();
+	//glEnable(GL_LINE_STIPPLE);
+	for (y = -90.0f; y < 90.0f; y += 20.0f) {
+		glLineStipple(factor, pattern);
+		glBegin(GL_LINES);
+			glVertex2f(-80.0f, y);
+			glVertex2f(80.0f, y);
+		glEnd();
+		factor++;
+	}
 
 
 	glPopMatrix();
@@ -46,6 +49,7 @@ void ChangeSize(GLsizei w, GLsizei h) {
 void SetupRC(void) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glColor3f(0.0f, 1.0f, 0.0f);
+	glEnable(GL_LINE_STIPPLE);
 }
 
 void SpecialKeys(int key, int x, int y)
