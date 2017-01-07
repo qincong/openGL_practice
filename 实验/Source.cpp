@@ -5,86 +5,53 @@
 #define GL_PI 3.1415f
 static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
+GLfloat  whiteLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+GLfloat  sourceLight[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+GLfloat	 lightPos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 void RenderScene(void)
 {
-	// Angle of revolution around the nucleus
-	static GLfloat fElect1 = 0.0f;
-
-	// Clear the window with current clearing color
+	static float fMoonRot = 0.0f;
+	static float fEarthRot = 0.0f;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Reset the modelview matrix
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	glPushMatrix();
 
-	// Translate the whole scene out and into view	
-	// This is the initial viewing transformation
-	glTranslatef(0.0f, 0.0f, -100.0f);
+	glTranslatef(0.0f, 0.0f, -300.0f);
 
-	// Red Nucleus
-	glColor3ub(255, 0, 0);
-	glutSolidSphere(10.0f, 15, 15);
-
-	// Yellow Electrons
 	glColor3ub(255, 255, 0);
+	glDisable(GL_LIGHTING);
+	glutSolidSphere(15.0f, 15, 15);
+	glEnable(GL_LIGHTING);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 
-	// First Electron Orbit
-	// Save viewing transformation
-	glPushMatrix();
+	glRotatef(fMoonRot, 0.0f, 1.0f, 0.0f);
+	glColor3ub(0, 0, 255);
+	glTranslatef(105.0f, 0.0f, 0.0f);
+	glutSolidSphere(15.0f, 15, 15);
 
-	// Rotate by angle of revolution
-	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
-
-	// Translate out from origin to orbit distance
-	glTranslatef(90.0f, 0.0f, 0.0f);
-
-	// Draw the electron
-	glutSolidSphere(6.0f, 15, 15);
-
-
-	// Restore the viewing transformation
-	glPopMatrix();
-
-	// Second Electron Orbit
-	glPushMatrix();
-	glRotatef(45.0f, 0.0f, 0.0f, 1.0f);
-	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
-	glTranslatef(-70.0f, 0.0f, 0.0f);
+	glColor3ub(200, 200, 200);
+	glTranslatef(30.0f, 0.0f, 0.0f);
+	fMoonRot += 15.0f;
+	if (fMoonRot > 360)
+		fMoonRot = 0;
 	glutSolidSphere(6.0f, 15, 15);
 	glPopMatrix();
-
-
-	// Third Electron Orbit
-	glPushMatrix();
-	glRotatef(360.0f - 45.0f, 0.0f, 0.0f, 1.0f);
-	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
-	glTranslatef(0.0f, 0.0f, 60.0f);
-	glutSolidSphere(6.0f, 15, 15);
-	glPopMatrix();
-
-
-	// Increment the angle of revolution
-	fElect1 += 10.0f;
-	if (fElect1 > 360.0f)
-		fElect1 = 0.0f;
-
-	// Show the image
+	fEarthRot += 5.0f;
+	if (fEarthRot > 360.0f)
+		fEarthRot = 0;
 	glutSwapBuffers();
 }
 
 void ChangeSize(GLsizei w, GLsizei h) {
-	GLfloat nRange = 100.0f;
-	if (h == 0) {
+	GLfloat fAspect;
+	if (h == 0)
 		h = 1;
-	}
 	glViewport(0, 0, w, h);
+	fAspect = (GLfloat)w / (GLfloat)h;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if (w <= h)
-		glOrtho(-nRange, nRange, nRange*h / w, -nRange*h / w, -nRange*2.0f, nRange*2.0f);
-	else
-		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange*2.0f, nRange*2.0f);
+	gluPerspective(45.0f, fAspect, 1.0, 425.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -94,7 +61,19 @@ void SetupRC()
 	glFrontFace(GL_CCW);		// Counter clock-wise polygons face out
 	glEnable(GL_CULL_FACE);		// Do not calculate inside of jet
 
-								// Black background
+	glEnable(GL_LIGHTING);
+
+	// Setup and enable light 0
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, whiteLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, sourceLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	glEnable(GL_LIGHT0);
+
+	// Enable color tracking
+	glEnable(GL_COLOR_MATERIAL);
+
+	// Set Material properties to follow glColor values
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
