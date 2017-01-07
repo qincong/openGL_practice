@@ -7,25 +7,48 @@ static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
 
 void RenderScene(void) {
-	
-	GLfloat y;
-	GLint factor = 3;
-	GLushort pattern = 0x5555;
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLfloat x, y, angle;
+	int iPivot = 1;
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
 	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
 
-	//glEnable(GL_LINE_STIPPLE);
-	for (y = -90.0f; y < 90.0f; y += 20.0f) {
-		glLineStipple(factor, pattern);
-		glBegin(GL_LINES);
-			glVertex2f(-80.0f, y);
-			glVertex2f(80.0f, y);
-		glEnd();
-		factor++;
+	glFrontFace(GL_CW);
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0.0f, 0.0f, 75.0f);
+	for (angle = 0.0f; angle < (2.0*GL_PI); angle += (GL_PI / 8.0f)) {
+		x = 50.0*sin(angle);
+		y = 50.0*cos(angle);
+		if ((iPivot % 2) == 0) {
+			glColor3f(0.0f, 1.0f, 0.0f);
+		}
+		else {
+			glColor3f(1.0f, 0.0f, 0.0f);
+		}
+		iPivot++;
+		glVertex2f(x, y);
 	}
+	glEnd();
 
+	glFrontFace(GL_CCW);
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex2f(0.0f, 0.0f);
+	for (angle = 0.0f; angle < (2.0*GL_PI); angle += (GL_PI / 8.0f)) {
+		x = 50.0*sin(angle);
+		y = 50.0*cos(angle);
+		if ((iPivot % 2) == 0) {
+			glColor3f(0.0f, 1.0f, 0.0f);
+		}
+		else {
+			glColor3f(1.0f, 0.0f, 0.0f);
+		}
+		iPivot++;
+		glVertex2f(x, y);
+	}
+	glEnd();
 
 	glPopMatrix();
 	glutSwapBuffers();
@@ -49,7 +72,7 @@ void ChangeSize(GLsizei w, GLsizei h) {
 void SetupRC(void) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glColor3f(0.0f, 1.0f, 0.0f);
-	glEnable(GL_LINE_STIPPLE);
+	glShadeModel(GL_SMOOTH);
 }
 
 void SpecialKeys(int key, int x, int y)
