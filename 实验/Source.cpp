@@ -6,51 +6,70 @@
 static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
 
-void RenderScene(void) {
-	GLfloat x, y, angle;
-	int iPivot = 1;
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+void RenderScene(void)
+{
+	// Angle of revolution around the nucleus
+	static GLfloat fElect1 = 0.0f;
+
+	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Reset the modelview matrix
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	// Translate the whole scene out and into view	
+	// This is the initial viewing transformation
+	glTranslatef(0.0f, 0.0f, -100.0f);
+
+	// Red Nucleus
+	glColor3ub(255, 0, 0);
+	glutSolidSphere(10.0f, 15, 15);
+
+	// Yellow Electrons
+	glColor3ub(255, 255, 0);
+
+	// First Electron Orbit
+	// Save viewing transformation
 	glPushMatrix();
-	glRotatef(xRot, 1.0f, 0.0f, 0.0f);
-	glRotatef(yRot, 0.0f, 1.0f, 0.0f);
 
-	glFrontFace(GL_CW);
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0f, 0.0f, 75.0f);
-	for (angle = 0.0f; angle < (2.0*GL_PI); angle += (GL_PI / 8.0f)) {
-		x = 50.0*sin(angle);
-		y = 50.0*cos(angle);
-		if ((iPivot % 2) == 0) {
-			glColor3f(0.0f, 1.0f, 0.0f);
-		}
-		else {
-			glColor3f(1.0f, 0.0f, 0.0f);
-		}
-		iPivot++;
-		glVertex2f(x, y);
-	}
-	glEnd();
+	// Rotate by angle of revolution
+	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
 
-	glFrontFace(GL_CCW);
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex2f(0.0f, 0.0f);
-	for (angle = 0.0f; angle < (2.0*GL_PI); angle += (GL_PI / 8.0f)) {
-		x = 50.0*sin(angle);
-		y = 50.0*cos(angle);
-		if ((iPivot % 2) == 0) {
-			glColor3f(0.0f, 1.0f, 0.0f);
-		}
-		else {
-			glColor3f(1.0f, 0.0f, 0.0f);
-		}
-		iPivot++;
-		glVertex2f(x, y);
-	}
-	glEnd();
+	// Translate out from origin to orbit distance
+	glTranslatef(90.0f, 0.0f, 0.0f);
 
+	// Draw the electron
+	glutSolidSphere(6.0f, 15, 15);
+
+
+	// Restore the viewing transformation
 	glPopMatrix();
+
+	// Second Electron Orbit
+	glPushMatrix();
+	glRotatef(45.0f, 0.0f, 0.0f, 1.0f);
+	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
+	glTranslatef(-70.0f, 0.0f, 0.0f);
+	glutSolidSphere(6.0f, 15, 15);
+	glPopMatrix();
+
+
+	// Third Electron Orbit
+	glPushMatrix();
+	glRotatef(360.0f - 45.0f, 0.0f, 0.0f, 1.0f);
+	glRotatef(fElect1, 0.0f, 1.0f, 0.0f);
+	glTranslatef(0.0f, 0.0f, 60.0f);
+	glutSolidSphere(6.0f, 15, 15);
+	glPopMatrix();
+
+
+	// Increment the angle of revolution
+	fElect1 += 10.0f;
+	if (fElect1 > 360.0f)
+		fElect1 = 0.0f;
+
+	// Show the image
 	glutSwapBuffers();
 }
 
@@ -63,16 +82,20 @@ void ChangeSize(GLsizei w, GLsizei h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if (w <= h)
-		glOrtho(-nRange, nRange, -nRange*h / w, nRange*h / w, -nRange, nRange);
+		glOrtho(-nRange, nRange, nRange*h / w, -nRange*h / w, -nRange*2.0f, nRange*2.0f);
 	else
-		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange, nRange);
+		glOrtho(-nRange*w / h, nRange*w / h, -nRange, nRange, -nRange*2.0f, nRange*2.0f);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
-void SetupRC(void) {
+void SetupRC()
+{
+	glEnable(GL_DEPTH_TEST);	// Hidden surface removal
+	glFrontFace(GL_CCW);		// Counter clock-wise polygons face out
+	glEnable(GL_CULL_FACE);		// Do not calculate inside of jet
+
+								// Black background
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glShadeModel(GL_SMOOTH);
 }
 
 void SpecialKeys(int key, int x, int y)
@@ -105,14 +128,21 @@ void SpecialKeys(int key, int x, int y)
 	glutPostRedisplay();
 }
 
+void TimerFunc(int value)
+{
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunc, 1);
+}
+
 int main(int argc, char *argv[]) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB |GLUT_DEPTH);
 	glutInitWindowSize(800, 600);
 	glutCreateWindow("Bounce");
 	glutDisplayFunc(RenderScene);
 	glutReshapeFunc(ChangeSize);
 	glutSpecialFunc(SpecialKeys);
+	glutTimerFunc(500, TimerFunc, 1);
 	SetupRC();
 	glutMainLoop();
 	return 0;
